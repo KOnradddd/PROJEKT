@@ -1,0 +1,109 @@
+#include <stdio.h>
+#include <math.h>
+#include <cuda.h>
+#define SIZE 6
+
+__global__ void metryki(double*a, double *b, double *c, int n)
+{
+	int i = threadIdx.x;
+	if (i==1)
+	{
+		double s=0;
+		for(int k=0;k<n;k++)
+			s+=(a[k]-b[k])*(a[k]-b[k]);
+		c[i]=sqrt(s);
+	}
+
+	if (i==2)
+	{
+		double s=0;
+		for(int k=0;k<n;k++)
+		s+=abs(a[k]-b[k]);
+		c[i]=s;
+	}
+
+	if (i==3)
+	{
+		int q=0, k=0;
+		for(k=0;k<n;k++)
+		{
+			if(a[i]==b[i])q++;
+		}
+		if(q==n)c[i]=1;
+		else c[i]=0;
+	}
+	if(i==4)
+	{
+		int k=0;
+		double s=0,r=0;
+		for(k=0;k<n;k++)
+		{
+			s+=a[k]*a[k];
+			r+=b[k]*b[k];
+		}
+		c[i]=sqrt(s)+sqrt(r);
+	}
+	if(i==5)
+	{
+		int licznik=1,k=0;
+		for(k=0;k<n;k++)
+		{
+			if(a[k]!=b[k])break;
+			licznik++;
+		}
+		c[i]=licznik;
+	}
+}
+
+int main()
+{
+	double *a, *b, *c;
+	double *d_a, *d_b, *d_c;
+	printf("Podaj liczbe wspolrzednych: ");
+	int n;
+	scanf("%d",&n);
+	a = (double *)malloc(n*sizeof(double));
+	b = (double *)malloc(n*sizeof(double));
+	c = (double *)malloc(SIZE*sizeof(double));
+
+	cudaMalloc( &d_a, n*sizeof(double));
+	cudaMalloc( &d_b, n*sizeof(double));
+	cudaMalloc( &d_c, SIZE*sizeof(double));
+
+	printf("Dla punktu A: ");
+	for( int i = 0; i < n; ++i )
+	{
+		scanf("%lf",&a[i]);
+	}
+
+	printf("Dla punktu B: ");
+	for( int i = 0; i < n; ++i )
+	{
+		scanf("%lf",&b[i]);
+	}
+
+	cudaMemcpy( d_a, a, n*sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_b, b, n*sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_c, c, SIZE*sizeof(double), cudaMemcpyHostToDevice );
+
+	metryki<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	
+	cudaMemcpy( c, d_c, SIZE*sizeof(double), cudaMemcpyDeviceToHost );
+
+	printf("Metryka Euklidesowa: %lf\n",c[1]);
+	printf("Metryka miejska: %lf\n",c[2]);
+	printf("Metryka dyskretna: %lf\n",c[3]);
+	printf("Metryka kolejowa: %lf\n",c[4]);
+	printf("Metryka w przestrzeni X^N: 1/ %lf\n",c[5]);
+
+
+	free(a);
+	free(b);
+	free(c);
+
+	cudaFree(d_a);
+	cudaFree(d_b);
+	cudaFree(d_c);
+
+	return 0;
+}
