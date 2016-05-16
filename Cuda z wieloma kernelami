@@ -1,0 +1,239 @@
+#include <stdio.h>
+#include <math.h>
+#include <cuda.h>
+#define SIZE 13
+
+//Metryka euklidesowa
+
+__global__ void m_euklidesowa(double *a, double *b, double *c, int n)
+{
+	double s=0;
+	for(int k=0;k<n;k++)
+	{
+		s+=(a[k]-b[k])*(a[k]-b[k]);
+	}
+	c[1]=sqrt(s);
+}
+
+//Metryka miejska
+
+__global__ void m_miejska(double *a, double *b, double *c, int n)
+{
+		double s=0;
+		for(int k=0;k<n;k++)
+		s+=abs(a[k]-b[k]);
+		c[2]=s;
+}
+
+//Metryka dyskretna
+
+__global__ void m_dyskretna(double *a, double *b, double *c, int n)
+{
+		int q=0, k=0;
+		for(k=0;k<n;k++)
+		{
+			if(a[k]==b[k])q++;
+		}
+		if(q==n)c[3]=1;
+		else c[3]=0;
+}
+
+//Metryka kolejowa
+
+__global__ void m_kolejowa(double *a, double *b, double *c, int n)
+{
+		int k=0;
+		double s=0,r=0;
+		for(k=0;k<n;k++)
+		{
+			s+=a[k]*a[k];
+			r+=b[k]*b[k];
+		}
+		c[4]=sqrt(s)+sqrt(r);
+}
+
+//Metryka przestrzeni X^N
+
+__global__ void m_xn(double *a, double *b, double *c, int n)
+{
+		double licznik=1;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			if(a[k]!=b[k])break;
+			licznik++;
+		}
+		c[5]=licznik;
+}
+
+//Metryka Hamminga
+
+__global__ void m_ham(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			if(a[k]!=b[k])licznik++;
+		}
+		c[6]=licznik;
+}
+
+//Metryka Canberra
+
+__global__ void m_can(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(abs(a[k]-b[k]))/(abs(a[k])+abs(b[k]));
+		}
+		c[7]=licznik;
+}
+
+//Metryka roznic kwadratow
+
+__global__ void m_ssd(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(a[k]-b[k])*(a[k]-b[k]);
+		}
+		c[8]=licznik;
+}
+
+//Metryka Mean absolute error
+
+__global__ void m_mae(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=abs(a[k]-b[k]);
+		}
+		c[9]=(licznik/n);
+}
+
+//Metryka Cosine similarity
+
+__global__ void m_cos(double *a, double *b, double *c, int n)
+{
+		double licznik1=0,licznik2=0,licznik3=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik1+=a[k]*b[k];
+		}
+		for(k=0;k<n;k++)
+		{
+			licznik2+=a[k]*a[k];
+		}
+		for(k=0;k<n;k++)
+		{
+			licznik3+=b[k]*b[k];
+		}
+
+		c[10]=1-(licznik1/(licznik2*licznik3));
+}
+
+//Metryka Bray-Curtis
+__global__ void m_bc(double *a, double *b, double *c, int n)
+{
+		double licznik1=0,licznik2=0,licznik3=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik1+=abs(a[k]-b[k]);
+		}
+		for(k=0;k<n;k++)
+		{
+			licznik2+=abs(a[k]);
+		}
+		for(k=0;k<n;k++)
+		{
+			licznik3+=abs(b[k]);
+		}
+
+		c[11]=1-(licznik1/(licznik2+licznik3));
+}
+
+
+
+int main()
+{
+	double *a, *b, *c;
+	double *d_a, *d_b, *d_c;
+	printf("Podaj liczbe wspolrzednych: ");
+	int n;
+	scanf("%d",&n);
+	a = (double *)malloc(n*sizeof(double));
+	b = (double *)malloc(n*sizeof(double));
+	c = (double *)malloc(SIZE*sizeof(double));
+
+	cudaMalloc( &d_a, n*sizeof(double));
+	cudaMalloc( &d_b, n*sizeof(double));
+	cudaMalloc( &d_c, SIZE*sizeof(double));
+
+	printf("Dla punktu A: ");
+	for( int i = 0; i < n; ++i )
+	{
+		scanf("%lf",&a[i]);
+	}
+
+	printf("Dla punktu B: ");
+	for( int i = 0; i < n; ++i )
+	{
+		scanf("%lf",&b[i]);
+	}
+
+	cudaMemcpy( d_a, a, n*sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_b, b, n*sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_c, c, SIZE*sizeof(double), cudaMemcpyHostToDevice );
+
+	m_euklidesowa<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_miejska<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_dyskretna<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_kolejowa<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_xn<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_ham<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_can<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_ssd<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_mae<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_cos<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	m_bc<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+
+
+
+
+
+	cudaMemcpy( c, d_c, SIZE*sizeof(double), cudaMemcpyDeviceToHost );
+
+	printf("Metryka Euklidesowa: %lf\n",c[1]);
+	printf("Metryka miejska: %lf\n",c[2]);
+	printf("Metryka dyskretna: %lf\n",c[3]);
+	printf("Metryka kolejowa: %lf\n",c[4]);
+	printf("Metryka w przestrzeni X^N: 1/ %lf\n",c[5]);
+	printf("Metryka Hamminga: %lf\n",c[6]);
+	printf("Metryka Canberra: %lf\n",c[7]);
+	printf("Metryka sum roznic kwadratow: %lf\n",c[8]);
+	printf("Metryka Mean absolute error: %lf\n",c[9]);
+	printf("Metryka Cosine similarity: %lf\n",c[10]);
+	printf("Metryka Bray-Curtis: %lf\n",c[11]);
+
+
+
+
+	free(a);
+	free(b);
+	free(c);
+
+	cudaFree(d_a);
+	cudaFree(d_b);
+	cudaFree(d_c);
+
+	return 0;
+}
