@@ -161,10 +161,17 @@ __global__ void m_bc(double *a, double *b, double *c, int n)
 		c[11]=1-(licznik1/(licznik2+licznik3));
 }
 
+void hello_message()
+{
+	printf("-----------------------------------------\n");
+	printf("           KALKULATOR METRYK\n");
+	printf("-----------------------------------------\n");
+}
 
 
 int main()
 {
+	hello_message();
 	double *a, *b, *c;
 	double *d_a, *d_b, *d_c;
 	printf("Podaj liczbe wspolrzednych: ");
@@ -178,7 +185,8 @@ int main()
 	cudaMalloc( &d_b, n*sizeof(double));
 	cudaMalloc( &d_c, SIZE*sizeof(double));
 
-	printf("Dla punktu A: ");
+
+	printf("\nDla punktu A: ");
 	for( int i = 0; i < n; ++i )
 	{
 		scanf("%lf",&a[i]);
@@ -189,7 +197,7 @@ int main()
 	{
 		scanf("%lf",&b[i]);
 	}
-
+	printf("\n");
 	cudaMemcpy( d_a, a, n*sizeof(double), cudaMemcpyHostToDevice );
 	cudaMemcpy( d_b, b, n*sizeof(double), cudaMemcpyHostToDevice );
 	cudaMemcpy( d_c, c, SIZE*sizeof(double), cudaMemcpyHostToDevice );
