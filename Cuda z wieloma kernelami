@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <cuda.h>
-#define SIZE 13
+#define SIZE 40
 
 //Metryka euklidesowa
 
@@ -160,6 +160,346 @@ __global__ void m_bc(double *a, double *b, double *c, int n)
 
 		c[11]=1-(licznik1/(licznik2+licznik3));
 }
+
+//Sorersen
+
+__global__ void soersen(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=abs(a[k]-b[k]);
+			mianownik+=(a[k]+b[k]);
+		}
+		c[12]=(licznik/mianownik);
+}
+
+//Gower
+
+__global__ void gower(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=abs(a[k]-b[k]);
+		}
+		c[13]=(licznik/n);
+}
+
+//Soergel
+
+__global__ void soergel(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=abs(a[k]-b[k]);
+			mianownik+=max(a[k],b[k]);
+		}
+		c[14]=(licznik/mianownik);
+}
+
+//Kulczynski
+
+__global__ void kulcz(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=abs(a[k]-b[k]);
+			mianownik+=min(a[k],b[k]);
+		}
+		c[15]=(licznik/mianownik);
+}
+
+//Lorentzian
+
+__global__ void lorentz(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=log(abs(a[k]-b[k])+1);
+		}
+		c[16]=(licznik);
+}
+
+//Intersection
+
+__global__ void inter(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=min(a[k],b[k]);
+		}
+		c[17]=(licznik);
+}
+
+//Non-intersection
+
+__global__ void noninter(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=abs(a[k]-b[k]);
+		}
+		c[18]=(licznik/2);
+}
+
+//Wave Edges
+
+__global__ void wave(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(abs(a[k]-b[k])/max(a[k],b[k]));
+		}
+		c[19]=(licznik);
+}
+
+//Motyka
+
+__global__ void motyka(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=max(a[k],b[k]);
+			mianownik+=(a[k]+b[k]);
+		}
+		c[20]=(licznik/mianownik);
+}
+
+//Ruzicka
+
+__global__ void ruzicka(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=min(a[k],b[k]);
+			mianownik+=max(a[k],b[k]);
+		}
+		c[21]=(licznik/mianownik);
+}
+
+//Tanimoto
+
+__global__ void tani(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(max(a[k],b[k])-min(a[k],b[k]));
+			mianownik+=max(a[k],b[k]);
+		}
+		c[22]=(licznik/mianownik);
+}
+
+//Dice
+__global__ void dice(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		double mianownik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=((a[k]-b[k])*(a[k]-b[k]));
+			mianownik+=(a[k]*a[k]);
+			mianownik+=(b[k]*b[k]);
+		}
+		c[23]=(licznik/mianownik);
+}
+
+//Bhattacharyya
+
+__global__ void bhatta(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=sqrt(a[k]*b[k]);
+		}
+		c[24]=log(licznik)*(-1);
+}
+
+//Hellinger
+
+__global__ void hell(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=sqrt(a[k]*b[k]);
+		}
+		c[25]=2*sqrt(1-licznik);
+}
+
+//Matusita
+
+__global__ void matu(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=sqrt(a[k]*b[k]);
+		}
+		c[26]=sqrt(2-2*licznik);
+}
+
+//Squared euclidean
+
+__global__ void se(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=((a[k])-(b[k])*((a[k])-(b[k]);
+		}
+		c[27]=licznik;
+}
+
+//Squared chord
+__global__ void sc(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(sqrt(a[k])-sqrt(b[k])*(sqrt(a[k])-sqrt(b[k]);
+		}
+		c[28]=licznik;
+}
+
+//Squared chi
+__global__ void schi(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=((a[k]-b[k])*(a[k]-b[k])/(a[k]+b[k]));
+		}
+		c[29]=licznik;
+}
+
+//Probabilistic symmetric
+
+__global__ void ps(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=((a[k]-b[k])*(a[k]-b[k])/(a[k]+b[k]));
+		}
+		c[30]=2*licznik;
+}
+
+//Divergence
+
+__global__ void div(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=((a[k]-b[k])*(a[k]-b[k])/((a[k]+b[k]))*(a[k]+b[k]));
+		}
+		c[31]=2*licznik;
+}
+
+//Clark
+
+__global__ void clark(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=((abs(a[i]-b[i])/(a[i]+b[i]))*(abs(a[i]-b[i])/(a[i]+b[i])));
+		}
+		c[32]=licznik;
+}
+
+//Additivesymmetric
+
+__global__ void adsi(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(a[i]-b[i])*(a[i]-b[i])*(a[i]+b[i])/(a[i]*b[i]);
+		}
+		c[33]=licznik;
+}
+
+//Kullback-Leibler
+
+__global__ void kl(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=a[i]*log(a[i]/b[i]);
+		}
+		c[34]=licznik;
+}
+
+//Jeffreys
+
+__global__ void jeffreys(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=(a[i]-b[i])*log(a[i]/b[i]);
+		}
+		c[35]=licznik;
+}
+
+//K divergence
+
+__global__ void kdiv(double *a, double *b, double *c, int n)
+{
+		double licznik=0;
+		int k=0;
+		for(k=0;k<n;k++)
+		{
+			licznik+=a[i]*log(2*a[i]/(a[i]+b[i]));
+		}
+		c[36]=licznik;
+}
+
+
+
 
 void hello_message()
 {
