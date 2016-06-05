@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <cuda.h>
+#include <time.h>
+
 #define SIZE 40
+
 
 //Metryka euklidesowa
 
@@ -378,7 +381,7 @@ __global__ void se(double *a, double *b, double *c, int n)
 		int k=0;
 		for(k=0;k<n;k++)
 		{
-			licznik+=((a[k])-(b[k])*((a[k])-(b[k]);
+			licznik+=((a[k])-(b[k]))*((a[k])-(b[k]));
 		}
 		c[27]=licznik;
 }
@@ -390,7 +393,7 @@ __global__ void sc(double *a, double *b, double *c, int n)
 		int k=0;
 		for(k=0;k<n;k++)
 		{
-			licznik+=(sqrt(a[k])-sqrt(b[k])*(sqrt(a[k])-sqrt(b[k]);
+			licznik+=(sqrt(a[k])-sqrt(b[k]))*(sqrt(a[k])-sqrt(b[k]));
 		}
 		c[28]=licznik;
 }
@@ -438,8 +441,8 @@ __global__ void div(double *a, double *b, double *c, int n)
 __global__ void clark(double *a, double *b, double *c, int n)
 {
 		double licznik=0;
-		int k=0;
-		for(k=0;k<n;k++)
+		int i=0;
+		for(i=0;i<n;i++)
 		{
 			licznik+=((abs(a[i]-b[i])/(a[i]+b[i]))*(abs(a[i]-b[i])/(a[i]+b[i])));
 		}
@@ -451,8 +454,8 @@ __global__ void clark(double *a, double *b, double *c, int n)
 __global__ void adsi(double *a, double *b, double *c, int n)
 {
 		double licznik=0;
-		int k=0;
-		for(k=0;k<n;k++)
+		int i=0;
+		for(i=0;i<n;i++)
 		{
 			licznik+=(a[i]-b[i])*(a[i]-b[i])*(a[i]+b[i])/(a[i]*b[i]);
 		}
@@ -461,11 +464,12 @@ __global__ void adsi(double *a, double *b, double *c, int n)
 
 //Kullback-Leibler
 
+
 __global__ void kl(double *a, double *b, double *c, int n)
 {
 		double licznik=0;
-		int k=0;
-		for(k=0;k<n;k++)
+		int i=0;
+		for(i=0;i<n;i++)
 		{
 			licznik+=a[i]*log(a[i]/b[i]);
 		}
@@ -474,11 +478,12 @@ __global__ void kl(double *a, double *b, double *c, int n)
 
 //Jeffreys
 
+
 __global__ void jeffreys(double *a, double *b, double *c, int n)
 {
 		double licznik=0;
-		int k=0;
-		for(k=0;k<n;k++)
+		int i=0;
+		for(i=0;i<n;i++)
 		{
 			licznik+=(a[i]-b[i])*log(a[i]/b[i]);
 		}
@@ -487,11 +492,12 @@ __global__ void jeffreys(double *a, double *b, double *c, int n)
 
 //K divergence
 
+
 __global__ void kdiv(double *a, double *b, double *c, int n)
 {
 		double licznik=0;
-		int k=0;
-		for(k=0;k<n;k++)
+		int i=0;
+		for(i=0;i<n;i++)
 		{
 			licznik+=a[i]*log(2*a[i]/(a[i]+b[i]));
 		}
@@ -499,48 +505,95 @@ __global__ void kdiv(double *a, double *b, double *c, int n)
 }
 
 
-
-
-void hello_message()
+int random(int min, int max)
 {
-	printf("-----------------------------------------\n");
-	printf("           KALKULATOR METRYK\n");
-	printf("-----------------------------------------\n");
+    int tmp;
+    if (max>=min)
+        max-= min;
+    else
+    {
+        tmp= min - max;
+        min= max;
+        max= tmp;
+    }
+    return max ? (rand() % max + min) : min;
 }
 
 
 int main()
 {
-	hello_message();
-	double *a, *b, *c;
+	double tab[300][300];
+	int aq=random(0,300);
+	int bq=random(0,300);
+	int cq=random(0,300);
+	int dq=random(0,300);
+
+	if(aq>bq)
+	{
+		int w=aq;
+		aq=bq;
+		bq=w;
+	}
+	if(cq>dq)
+	{
+		int w=cq;
+		cq=dq;
+		dq=w;
+	}
+
+
+	double *wektor1=(double*)malloc((bq-aq+1)*sizeof(double));
+    double *wektor2=(double*)malloc((bq-aq+1)*sizeof(double));
+
+	FILE *fp;
+   if ((fp=fopen("dane.txt", "a+"))==NULL) 
+   {
+     printf ("Nie mogę otworzyć pliku test.txt do zapisu!\n");
+     exit(1);
+   }
+
+   int i,j;
+
+   for(i=0;i<300;i++)
+   {
+	   for(j=0;j<300;j++)
+	   {
+			fscanf (fp, "%lf", &tab[i][j]);
+	   }
+   } 
+
+   for(i=cq;i<dq;i++)
+   {
+	   wektor1[aq]=tab[aq][i];
+   }
+   for(i=cq;i<dq;i++)
+   {
+	   wektor2[bq]=tab[bq][i];
+   }
+
+
+	double *c;
 	double *d_a, *d_b, *d_c;
-	printf("Podaj liczbe wspolrzednych: ");
-	int n;
-	scanf("%d",&n);
-	a = (double *)malloc(n*sizeof(double));
-	b = (double *)malloc(n*sizeof(double));
+
 	c = (double *)malloc(SIZE*sizeof(double));
 
-	cudaMalloc( &d_a, n*sizeof(double));
-	cudaMalloc( &d_b, n*sizeof(double));
+	cudaMalloc( &d_a, (bq-aq)*sizeof(double));
+	cudaMalloc( &d_b, (bq-aq)*sizeof(double));
 	cudaMalloc( &d_c, SIZE*sizeof(double));
 
 
-	printf("\nDla punktu A: ");
-	for( int i = 0; i < n; ++i )
-	{
-		scanf("%lf",&a[i]);
-	}
-
-	printf("Dla punktu B: ");
-	for( int i = 0; i < n; ++i )
-	{
-		scanf("%lf",&b[i]);
-	}
-	printf("\n");
-	cudaMemcpy( d_a, a, n*sizeof(double), cudaMemcpyHostToDevice );
-	cudaMemcpy( d_b, b, n*sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_a, wektor1, (bq-aq)*sizeof(double), cudaMemcpyHostToDevice );
+	cudaMemcpy( d_b, wektor2, (bq-aq)*sizeof(double), cudaMemcpyHostToDevice );
 	cudaMemcpy( d_c, c, SIZE*sizeof(double), cudaMemcpyHostToDevice );
+
+	int n=bq-aq;
+	double thr[SIZE];
+	printf("Enter Threshold: ");
+	int s;
+	for(s=1;s<36;s++)
+	{
+		scanf("%lf",&thr[s]);
+	}
 
 	m_euklidesowa<<< 1, SIZE >>>(d_a, d_b, d_c, n);
 	m_miejska<<< 1, SIZE >>>(d_a, d_b, d_c, n);
@@ -553,30 +606,56 @@ int main()
 	m_mae<<< 1, SIZE >>>(d_a, d_b, d_c, n);
 	m_cos<<< 1, SIZE >>>(d_a, d_b, d_c, n);
 	m_bc<<< 1, SIZE >>>(d_a, d_b, d_c, n);
-
-
-
+	soersen<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	gower<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	soergel<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	kulcz<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	lorentz<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	inter<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	noninter<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	wave<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	motyka<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	ruzicka<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	tani<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	dice<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	bhatta<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	hell<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	matu<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	se<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	sc<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	schi<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	ps<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	div<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	clark<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	adsi<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	kl<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	jeffreys<<< 1, SIZE >>>(d_a, d_b, d_c, n);
+	kdiv<<< 1, SIZE >>>(d_a, d_b, d_c, n);
 
 
 	cudaMemcpy( c, d_c, SIZE*sizeof(double), cudaMemcpyDeviceToHost );
 
-	printf("Metryka Euklidesowa: %lf\n",c[1]);
-	printf("Metryka miejska: %lf\n",c[2]);
-	printf("Metryka dyskretna: %lf\n",c[3]);
-	printf("Metryka kolejowa: %lf\n",c[4]);
-	printf("Metryka w przestrzeni X^N: 1/ %lf\n",c[5]);
-	printf("Metryka Hamminga: %lf\n",c[6]);
-	printf("Metryka Canberra: %lf\n",c[7]);
-	printf("Metryka sum roznic kwadratow: %lf\n",c[8]);
-	printf("Metryka Mean absolute error: %lf\n",c[9]);
-	printf("Metryka Cosine similarity: %lf\n",c[10]);
-	printf("Metryka Bray-Curtis: %lf\n",c[11]);
+	int wynik[SIZE];
 
+	for(i=0;i<36;i++)
+	{
+		if(thr[i]<c[i])
+		{
+			wynik[i]=1;
+		}
+		else
+		{
+			wynik[i]=0;
+		}
+	}
 
+	for(i=0;i<36;i++)
+	{
+		printf("%d ",wynik[i]);
+	}
 
-
-	free(a);
-	free(b);
+	free(wektor1);
+	free(wektor2);
 	free(c);
 
 	cudaFree(d_a);
