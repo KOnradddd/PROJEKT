@@ -1,0 +1,30 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+#include <time.h>
+ 
+ int main ()
+ {
+	int a,zarodek,i,j;
+	double q=0;
+   FILE *fp;
+	zarodek= time(NULL);
+    srand(zarodek);
+ 
+   if ((fp=fopen("dane.txt", "w"))==NULL) {
+     printf ("Nie mogę otworzyć pliku test.txt do zapisu!\n");
+     exit(1);
+     }
+   for(i=0;i<300;i++)
+   {
+	   for(j=0;j<300;j++)
+	   {
+			a=rand();
+			q=a;
+			q/=123;
+			fprintf (fp, "%lf", q);
+			fprintf(fp, "%c",' ');
+	   }
+   }
+   fclose (fp); 
+   return 0;
+ }
