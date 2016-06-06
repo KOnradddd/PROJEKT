@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "metrics.h"
 
-#define SIZE 13
+#define SIZE 40
 
 
 
@@ -35,7 +35,7 @@ int main()
 	FILE *fp;
    if ((fp=fopen("dane.txt", "a+"))==NULL)
    {
-     printf ("Nie mogê otworzyæ pliku test.txt do zapisu!\n");
+     printf ("Nie moge otworzyc pliku test.txt do zapisu!\n");
      exit(1);
    }
 
@@ -60,56 +60,55 @@ int main()
 
 
 	double *c;
-	double *d_a, *d_b;
 
 	c = (double *)malloc(SIZE*sizeof(double));
 
     int n=bq-aq;
 	double thr[SIZE];
-	printf("Enter Threshold: ");
 	int s;
+	printf("Enter threshold: ");
 	for(s=1;s<36;s++)
 	{
-		thr[s]=1;
+		scanf("%lf", &thr[s]);
 	}
 
 
-	m_euklidesowa(d_a, d_b, c, n);
-	m_miejska(d_a, d_b, c, n);
-	m_dyskretna(d_a, d_b, c, n);
-	m_kolejowa(d_a, d_b, c, n);
-	m_xn(d_a, d_b, c, n);
-	m_ham(d_a, d_b, c, n);
-	m_can(d_a, d_b, c, n);
-	m_ssd(d_a, d_b, c, n);
-	m_mae(d_a, d_b, c, n);
-	m_cos(d_a, d_b, c, n);
-	m_bc(d_a, d_b, c, n);
-	soersen(d_a, d_b, c, n);
-    gower(d_a, d_b, c, n);
-    soergel(d_a, d_b, c, n);
-    kulcz(d_a, d_b, c, n);
-    lorentz(d_a, d_b, c, n);
-    inter(d_a, d_b, c, n);
-    noninter(d_a, d_b, c, n);
-    wave(d_a, d_b, c, n);
-    motyka(d_a, d_b, c, n);
-    ruzicka(d_a, d_b, c, n);
-    tani(d_a, d_b, c, n);
-    dice(d_a, d_b, c, n);
-    bhatta(d_a, d_b, c, n);
-    hell(d_a, d_b, c, n);
-    matu(d_a, d_b, c, n);
-    se(d_a, d_b, c, n);
-    sc(d_a, d_b, c, n);
-    schi(d_a, d_b, c, n);
-    ps(d_a, d_b, c, n);
-    dive(d_a, d_b, c, n);
-    clark(d_a, d_b, c, n);
-    adsi(d_a, d_b, c, n);
-    kl(d_a, d_b, c, n);
-    jeffreys(d_a, d_b, c, n);
-    kdiv(d_a, d_b, c, n);
+	m_euklidesowa(wektor1, wektor2, c, n);
+	m_miejska(wektor1, wektor2, c, n);
+	m_dyskretna(wektor1, wektor2, c, n);
+	m_kolejowa(wektor1, wektor2, c, n);
+	m_xn(wektor1, wektor2, c, n);
+	m_ham(wektor1, wektor2, c, n);
+	m_can(wektor1, wektor2, c, n);
+	m_ssd(wektor1, wektor2, c, n);
+	m_mae(wektor1, wektor2, c, n);
+	m_cos(wektor1, wektor2, c, n);
+	m_bc(wektor1, wektor2, c, n);
+	soersen(wektor1, wektor2, c, n);
+    gower(wektor1, wektor2, c, n);
+    soergel(wektor1, wektor2, c, n);
+    kulcz(wektor1, wektor2, c, n);
+    lorentz(wektor1, wektor2, c, n);
+    inter(wektor1, wektor2, c, n);
+    noninter(wektor1, wektor2, c, n);
+    wave(wektor1, wektor2, c, n);
+    motyka(wektor1, wektor2, c, n);
+    ruzicka(wektor1, wektor2, c, n);
+    tani(wektor1, wektor2, c, n);
+    dice(wektor1, wektor2, c, n);
+    bhatta(wektor1, wektor2, c, n);
+    hell(wektor1, wektor2, c, n);
+    matu(wektor1, wektor2, c, n);
+    se(wektor1, wektor2, c, n);
+    sc(wektor1, wektor2, c, n);
+    schi(wektor1, wektor2, c, n);
+    ps(wektor1, wektor2, c, n);
+    dive(wektor1, wektor2, c, n);
+    clark(wektor1, wektor2, c, n);
+    adsi(wektor1, wektor2, c, n);
+    kl(wektor1, wektor2, c, n);
+    jeffreys(wektor1, wektor2, c, n);
+    kdiv(wektor1, wektor2, c, n);
 
 int wynik[SIZE];
 
@@ -129,11 +128,8 @@ int wynik[SIZE];
 	{
 		printf("%d ",wynik[i]);
 	}
-
+	printf("\n");
 	free(wektor1);
 	free(wektor2);
 	free(c);
-
-
-	return 0;
 }
